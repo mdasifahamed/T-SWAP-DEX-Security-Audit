@@ -22,11 +22,11 @@ contract Handler is Test {
 
     // variable To Compare Which Does Cointained In the Main Pool Contrac
 
-    int256 actualDeltaX;
-    int256 actualDeltaY;
+    int256 public actualDeltaX;
+    int256 public actualDeltaY;
 
-    int256 expectedDeltaY;
-    int256 expectedDeltaX;
+    int256 public expectedDeltaY;
+    int256 public expectedDeltaX;
 
    
     int256 public startingX;

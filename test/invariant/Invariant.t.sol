@@ -10,6 +10,7 @@ import{TSwapPool} from "../../src/TSwapPool.sol";
 import{PoolFactory} from "../../src/PoolFactory.sol";
 
 import {MockERC20} from "../mocks/MOCKERC20.sol";
+import{Handler} from "./Handler.t.sol";
 
 
 contract Invariant is StdInvariant , Test {
@@ -25,6 +26,10 @@ contract Invariant is StdInvariant , Test {
     int256 public constant STARTING_BALANCE_X = 100e18; // PoolToken Balance
 
     int256 public constant STARTING_BALANCE_Y = 50e18; // WETHToken Balance
+
+    // Our Handler contract
+
+    Handler handler;
 
     function setUp() public {
         poolToken  = new MockERC20();
@@ -48,9 +53,25 @@ contract Invariant is StdInvariant , Test {
             uint256(STARTING_BALANCE_X), 
             uint64(block.timestamp));
 
+        
+        handler = new Handler(tswapPool);
 
+        bytes4[] memory selectors = new bytes4[](2);
+        selectors[0] = handler.deposit.selector;
+        selectors[1] = handler.swapPoolTokenForWethBasedOnOutputWeth.selector;
+        targetSelector(
+            FuzzSelector({addr:address(handler), selectors:selectors})
+        );
 
+        targetContract(address(handler));
     }
 
+    function invariant_testAfterSwapingTokenXBalanceRemaiansSame() public {
+        assert(handler.actualDeltaX() == handler.expectedDeltaX());
+    }
+
+        function invariant_testAfterSwapingTokenYBalanceRemaiansSame() public {
+        assert(handler.actualDeltaY() == handler.expectedDeltaY());
+    }
 
 }
