@@ -93,6 +93,7 @@ contract TSwapPool is ERC20 {
         string memory liquidityTokenName,
         string memory liquidityTokenSymbol
     ) ERC20(liquidityTokenName, liquidityTokenSymbol) {
+        // @audit should check for zero-address.
         i_wethToken = IERC20(wethToken);
         i_poolToken = IERC20(poolToken);
     }
@@ -114,6 +115,10 @@ contract TSwapPool is ERC20 {
         uint256 wethToDeposit,
         uint256 minimumLiquidityTokensToMint,
         uint256 maximumPoolTokensToDeposit,
+        // @audit deadline is not used any where in the function
+        // user can set for taransaction to deone in the next block 
+        // but the transaction will be executed in the current block
+        // it is high sever disruption. 
         uint64 deadline
     )
         external
@@ -128,6 +133,8 @@ contract TSwapPool is ERC20 {
         }
         if (totalLiquidityTokenSupply() > 0) {
             uint256 wethReserves = i_wethToken.balanceOf(address(this));
+            // @audit this poolTokenReserves is not used anywhere in this function 
+            // it is better to remove for gas efficiency.
             uint256 poolTokenReserves = i_poolToken.balanceOf(address(this));
             // Our invariant says weth, poolTokens, and liquidity tokens must always have the same ratio after the
             // initial deposit
@@ -177,6 +184,8 @@ contract TSwapPool is ERC20 {
                 maximumPoolTokensToDeposit,
                 wethToDeposit
             );
+            // @ audit info liquidityTokensToMint it is not  state variable and it should be update before external fucntion 
+            // in here it sould be called before _addLiquidityMintAndTransfer.
             liquidityTokensToMint = wethToDeposit;
         }
     }
@@ -191,6 +200,8 @@ contract TSwapPool is ERC20 {
         uint256 liquidityTokensToMint
     ) private {
         _mint(msg.sender, liquidityTokensToMint);
+        //@audit this event is backward it is in wrong order it should be in this order 
+        // (msg.sender, wethToDeposit,poolTokensToDeposit);
         emit LiquidityAdded(msg.sender, poolTokensToDeposit, wethToDeposit);
 
         // Interactions
