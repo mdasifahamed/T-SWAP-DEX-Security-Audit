@@ -309,6 +309,7 @@ contract TSwapPool is ERC20 {
             ((outputReserves - outputAmount) * 997);
     }
 
+    // @audit the fucntion does have any natspec meaning no docS
     function swapExactInput(
         IERC20 inputToken,
         uint256 inputAmount,
@@ -319,6 +320,7 @@ contract TSwapPool is ERC20 {
         public
         revertIfZero(inputAmount)
         revertIfDeadlinePassed(deadline)
+        // @audit-low it does not Return the out whih wrong output
         returns (uint256 output)
     {
         uint256 inputReserves = inputToken.balanceOf(address(this));
