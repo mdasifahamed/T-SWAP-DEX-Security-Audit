@@ -387,6 +387,8 @@ contract TSwapPool is ERC20 {
     function sellPoolTokens(
         uint256 poolTokenAmount
     ) external returns (uint256 wethAmount) {
+
+        // @audit wrong parameter has paased on swapExactOutput() poolTokenAmount is worng it should be min weth token amount
         return
             swapExactOutput(
                 i_poolToken,
