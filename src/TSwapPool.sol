@@ -282,6 +282,9 @@ contract TSwapPool is ERC20 {
         // totalPoolTokensOfPool) + (wethToDeposit * poolTokensToDeposit) = k
         // (totalWethOfPool * totalPoolTokensOfPool) + (wethToDeposit * totalPoolTokensOfPool) = k - (totalWethOfPool *
         // poolTokensToDeposit) - (wethToDeposit * poolTokensToDeposit)
+
+        // @ audit-info maigc number 997 and 1000
+        // they sholud be in constant number.
         uint256 inputAmountMinusFee = inputAmount * 997;
         uint256 numerator = inputAmountMinusFee * outputReserves;
         uint256 denominator = (inputReserves * 1000) + inputAmountMinusFee;
@@ -300,6 +303,8 @@ contract TSwapPool is ERC20 {
         returns (uint256 inputAmount)
     {
         return
+            // @audit high maigc number caused more fee than it should where is 10000 which should be 1000
+            // it charge 91.3 % fee instead of 0.03%
             ((inputReserves * outputAmount) * 10000) /
             ((outputReserves - outputAmount) * 997);
     }
