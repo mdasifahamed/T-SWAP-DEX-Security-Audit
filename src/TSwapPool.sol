@@ -354,11 +354,14 @@ contract TSwapPool is ERC20 {
         IERC20 inputToken,
         IERC20 outputToken,
         uint256 outputAmount,
+        //uint256 maxInputAmount, needed here
         uint64 deadline
     )
         public
         revertIfZero(outputAmount)
         revertIfDeadlinePassed(deadline)
+        // @audit-info wrong return value
+        // inputAmount is nrver returned  in this function 
         returns (uint256 inputAmount)
     {
         uint256 inputReserves = inputToken.balanceOf(address(this));
@@ -369,6 +372,9 @@ contract TSwapPool is ERC20 {
             inputReserves,
             outputReserves
         );
+
+        // no checks if we put 10 weth it may return big 10000000000 dai which to to much money 
+        // @audit need max inputAmount
 
         _swap(inputToken, inputAmount, outputToken, outputAmount);
     }
@@ -411,7 +417,7 @@ contract TSwapPool is ERC20 {
         ) {
             revert TSwapPool__InvalidToken();
         }
-        // @audit It Breaks the Invariant 
+        // @audit-high It Breaks the Invariant 
         swap_count++;
         if (swap_count >= SWAP_COUNT_MAX) {
             swap_count = 0;
