@@ -161,6 +161,36 @@ event log will provide wrong information as the parameters are in wrong order .
 + emit LiquidityAdded (msg.sender, wethToDeposit,poolTokensToDeposit);
 - emit LiquidityAdded (msg.sender, poolTokensToDeposit, wethToDeposit);
 ```
+
+
+
+### [L-2] Default value returned by `TSwapPool::swapExactInput` results in incorrect return value given
+
+**Description:** The `swapExactInput` function is expected to return the actual amount of tokens bought by the caller. However, while it declares the named return value `ouput` it is never assigned a value, nor uses an explict return statement. 
+
+**Impact:** The return value will always be 0, giving incorrect information to the caller. 
+
+**Recommended Mitigation:** 
+
+```diff
+    {
+        uint256 inputReserves = inputToken.balanceOf(address(this));
+        uint256 outputReserves = outputToken.balanceOf(address(this));
+
+-        uint256 outputAmount = getOutputAmountBasedOnInput(inputAmount, inputReserves, outputReserves);
++        output = getOutputAmountBasedOnInput(inputAmount, inputReserves, outputReserves);
+
+-        if (output < minOutputAmount) {
+-            revert TSwapPool__OutputTooLow(outputAmount, minOutputAmount);
++        if (output < minOutputAmount) {
++            revert TSwapPool__OutputTooLow(outputAmount, minOutputAmount);
+        }
+
+-        _swap(inputToken, inputAmount, outputToken, outputAmount);
++        _swap(inputToken, inputAmount, outputToken, output);
+    }
+```
+
 # High
 
 
