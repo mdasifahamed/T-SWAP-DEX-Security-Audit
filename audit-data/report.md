@@ -65,10 +65,10 @@ Index event fields make the field more quickly accessible to off-chain tools tha
 	```
 
 
-# High
+# Medium
 
 
-### [H-1] At `TSwapPool::deposit()` has missing deadline parameter is never used casuing transaction can complete even after deadline .
+### [M-1] At `TSwapPool::deposit()` has missing deadline parameter is never used casuing transaction can complete even after deadline .
 
 **Description:** `TSwapPool::deposit()` fucntion accepts an deadline paraameter, according to the documentation.
 "The deadline is a parameter which determine when the transaction to cempleted." but is was never used in the function.
