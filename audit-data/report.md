@@ -65,6 +65,53 @@ Index event fields make the field more quickly accessible to off-chain tools tha
 	```
 
 
+### [I-5] Constants should be defined and used instead of literals
+
+
+
+- Found in src/TSwapPool.sol [Line: 274](src/TSwapPool.sol#L274)
+
+	```solidity
+	        uint256 inputAmountMinusFee = inputAmount * 997;
+	```
+
+- Found in src/TSwapPool.sol [Line: 276](src/TSwapPool.sol#L276)
+
+	```solidity
+	        uint256 denominator = (inputReserves * 1000) + inputAmountMinusFee;
+	```
+
+- Found in src/TSwapPool.sol [Line: 292](src/TSwapPool.sol#L292)
+
+	```solidity
+	            ((inputReserves * outputAmount) * 10000) /
+	```
+
+- Found in src/TSwapPool.sol [Line: 293](src/TSwapPool.sol#L293)
+
+	```solidity
+	            ((outputReserves - outputAmount) * 997);
+	```
+
+- Found in src/TSwapPool.sol [Line: 400](src/TSwapPool.sol#L400)
+
+	```solidity
+	            outputToken.safeTransfer(msg.sender, 1_000_000_000_000_000_000);
+	```
+
+- Found in src/TSwapPool.sol [Line: 452](src/TSwapPool.sol#L452)
+
+	```solidity
+	                1e18,
+	```
+
+- Found in src/TSwapPool.sol [Line: 461](src/TSwapPool.sol#L461)
+
+	```solidity
+	                1e18,
+	```
+
+
 # Medium
 
 
@@ -96,6 +143,26 @@ And this might result adding liquidity to the market when the conditon for depos
 
     }
 ```
+
+
+# Low
+### [L-1] At `TSwapPoll::LiquidityAdded()` is wrong ordered which lead provide worng informations.
+
+**Description:** When the `LiquidityAdded` event emitted at the `TSwapPool::_addLiquidityMintAndTransfer()` function
+event log will provide wrong information as the parameters are in wrong order .
+
+**Impact:** User Will get Wrong Information.
+
+
+
+**Recommended Mitigation:** try To Change The Order.
+
+```diff
++ emit LiquidityAdded (msg.sender, wethToDeposit,poolTokensToDeposit);
+- emit LiquidityAdded (msg.sender, poolTokensToDeposit, wethToDeposit);
+```
+
+
 
 ### [S-#] TITLE (Root Cause + Impact)
 
