@@ -302,7 +302,7 @@ The follow block of code is responsible for the issue.
 Most simply put, the protocol's core invariant is broken. 
 
 **Proof of Concept:** 
-1. A user swaps 10 times, and collects the extra incentive of `1_000_000_000_000_000_000` tokens
+1. A user swaps 10 times a token, and collects the extra incentive of `1_000_000_000_000_000_000` tokens
 2. That user continues to swap untill all the protocol funds are drained
 
 <details>
