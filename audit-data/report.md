@@ -161,8 +161,32 @@ event log will provide wrong information as the parameters are in wrong order .
 + emit LiquidityAdded (msg.sender, wethToDeposit,poolTokensToDeposit);
 - emit LiquidityAdded (msg.sender, poolTokensToDeposit, wethToDeposit);
 ```
+# High
 
 
+### [H-1] Incorrect fee calculation in `TSwapPool::getInputAmountBasedOnOutput` causes protocll to take too many tokens from users, resulting in lost fees
+
+**Description:** The `getInputAmountBasedOnOutput` function is intended to calculate the amount of tokens a user should deposit given an amount of tokens of output tokens. However, the function currently miscalculates the resulting amount. When calculating the fee, it scales the amount by 10_000 instead of 1_000. 
+
+**Impact:** Protocol takes more fees than expected from users. 
+
+**Recommended Mitigation:** 
+
+```diff
+    function getInputAmountBasedOnOutput(
+        uint256 outputAmount,
+        uint256 inputReserves,
+        uint256 outputReserves
+    )
+        public
+        pure
+        revertIfZero(outputAmount)
+        revertIfZero(outputReserves)
+        returns (uint256 inputAmount)
+    {
+-        return ((inputReserves * outputAmount) * 10_000) / ((outputReserves - outputAmount) * 997);
++        return ((inputReserves * outputAmount) * 1_000) / ((outputReserves - outputAmount) * 997);
+    }
 
 ### [S-#] TITLE (Root Cause + Impact)
 
