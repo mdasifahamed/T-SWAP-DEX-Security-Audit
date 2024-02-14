@@ -348,13 +348,4 @@ Place the following into `TSwapPool.t.sol`.
 
 </details>
 
-### [S-#] TITLE (Root Cause + Impact)
-
-**Description:** 
-
-**Impact:** 
-
-**Proof of Concept:**
-
-**Recommended Mitigation:** 
 
