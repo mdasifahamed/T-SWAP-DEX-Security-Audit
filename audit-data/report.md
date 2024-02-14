@@ -1,199 +1,118 @@
-# InFromational
+---
+title: TSwapPool
+author:  Md Asif Ahamed
+date: Feb 14, 2024
+header-includes:
+  - \usepackage{titling}
+  - \usepackage{graphicx}
+---
 
-### [I-1] `PoolFactory::PoolFactory__PoolDoesNotExist()` is not used sholud be removed.
+\begin{titlepage}
+    \centering
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.5\textwidth]{Logo.pdf} 
+    \end{figure}
+    \vspace*{2cm}
+    {\Huge\bfseries TSwapPool\par}
+    \vspace{1cm}
+    {\Large Version 1.0\par}
+    \vspace{2cm}
+    {\Large\itshape Md Asif Ahamed\par}
+    \vfill
+    {\large \today\par}
+\end{titlepage}
 
-**Description:** An Custom called `PoolFactory__PoolDoesNotExist()` is in the `PoolFactory` contract but never usedit should be removed.
+\maketitle
 
-```diff
--     error PoolFactory__PoolDoesNotExist(address tokenAddress);
+<!-- Your report starts here! -->
+
+Prepared by: [MD ASIF AHAMED]
+Lead Auditors: 
+- MD ASIF AHAMED
+
+# Table of Contents
+- [Table of Contents](#table-of-contents)
+- [Protocol Summary](#protocol-summary)
+- [Disclaimer](#disclaimer)
+- [Risk Classification](#risk-classification)
+- [Audit Details](#audit-details)
+  - [Scope](#scope)
+  - [Roles](#roles)
+- [Executive Summary](#executive-summary)
+  - [Issues found](#issues-found)
+- [Findings](#findings)
+- [High](#high)
+- [Medium](#medium)
+- [Low](#low)
+- [Informational](#informational)
+- [Gas](#gas)
+
+# Protocol Summary
+
+This project is meant to be a permissionless way for users to swap assets between each other at a fair price. You can think of T-Swap as a decentralized asset/token exchange (DEX). 
+T-Swap is known as an [Automated Market Maker (AMM)](https://chain.link/education-hub/what-is-an-automated-market-maker-amm) because it doesn't use a normal "order book" style exchange, instead it uses "Pools" of an asset. 
+It is similar to Uniswap. To understand Uniswap, please watch this video: [Uniswap Explained](https://www.youtube.com/watch?v=DLu35sIqVTM)
+
+## TSwap Pools
+The protocol starts as simply a `PoolFactory` contract. This contract is used to create new "pools" of tokens. It helps make sure every pool token uses the correct logic. But all the magic is in each `TSwapPool` contract. 
+
+You can think of each `TSwapPool` contract as it's own exchange between exactly 2 assets. Any ERC20 and the [WETH](https://etherscan.io/token/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2) token. These pools allow users to permissionlessly swap between an ERC20 that has a pool and WETH. Once enough pools are created, users can easily "hop" between supported ERC20s. 
+
+For example:
+1. User A has 10 USDC
+2. They want to use it to buy DAI
+3. They `swap` their 10 USDC -> WETH in the USDC/WETH pool
+4. Then they `swap` their WETH -> DAI in the DAI/WETH pool
+
+# Disclaimer
+
+The Md Asif Ahamed  makes all effort to find as many vulnerabilities in the code in the given time period, but holds no responsibilities for the findings provided in this document. A security audit by the team is not an endorsement of the underlying business or product. The audit was time-boxed and the review of the code was solely on the security aspects of the Solidity implementation of the contracts.
+
+# Risk Classification
+
+|            |        | Impact |        |     |
+| ---------- | ------ | ------ | ------ | --- |
+|            |        | High   | Medium | Low |
+|            | High   | H      | H/M    | M   |
+| Likelihood | Medium | H/M    | M      | M/L |
+|            | Low    | M      | M/L    | L   |
+
+We use the [CodeHawks](https://docs.codehawks.com/hawks-auditors/how-to-evaluate-a-finding-severity) severity matrix to determine severity. See the documentation for more details.
+
+# Audit Details 
+
+**The findings described in this document correspond the following commit hash:**
+
+```
+2e8f81e263b3a9d18fab4fb5c46805ffc10a9990
 ```
 
-
-### [I-2] At `PoolFactory::constaructor()` lacks zero address check, without cheking by mistake zero address can be passed.
-
-**Description:** Add Zero Address Checks At The  `PoolFactory::constaructor()` For Validation.
-
-```diff
-        constructor(address wethToken) {
-+            if(wethToken == address(0)){
-+                revert();
-+            }
-        i_wethToken = wethToken;
-    }
+## Scope 
 ```
-
-### [I-3] TITLE `PoolFactory::creatPool()` instead using `name()` for concating symbolpair it should use `symbol()`.
-
-**Description:** Using name with the symbol it makes confusing symbol sholud be used with othe other token symbol con pair concating at `PoolFactory::createPool()`.
-
-```diff
-- string memory liquidityTokenSymbol = string.concat("ts", IERC20(tokenAddress).name());
-
-+ string memory liquidityTokenSymbol = string.concat("ts", IERC20(tokenAddress).symbol());
+./src/
+--- PoolFactory.sol
+--- TSwapPool.sol
 ```
+## Roles
+- Liquidity Providers: Users who have liquidity deposited into the pools. Their shares are represented by the LP ERC20 tokens. They gain a 0.3% fee every time a swap is made. 
+- Users: Users who want to swap tokens.
+
+# Executive Summary
+
+## Issues found
 
 
-
-
-### [I-4] Events in `PoolFactory` lacks `indexeded` one of the evenets in `PoolFactory::Swap()`.
-
-**Description:** At `PoolFactory::Swap()` has more than 3 parameter it should have parameter indexed.
-Index event fields make the field more quickly accessible to off-chain tools that parse events. However, note that each index field costs extra gas during emission, so it's not necessarily best to index the maximum allowed per event (three fields). Each event should use three indexed fields if there are three or more fields, and gas usage is not particularly of concern for the events in question. If there are fewer than three fields, all of the fields should be indexed.
-
-- Found in src/PoolFactory.sol [Line: 35](src/PoolFactory.sol#L35)
-
-	```solidity
-	    event PoolCreated(address tokenAddress, address poolAddress);
-	```
-
-- Found in src/TSwapPool.sol [Line: 52](src/TSwapPool.sol#L52)
-
-	```solidity
-	    event LiquidityAdded(
-	```
-
-- Found in src/TSwapPool.sol [Line: 57](src/TSwapPool.sol#L57)
-
-	```solidity
-	    event LiquidityRemoved(
-	```
-
-- Found in src/TSwapPool.sol [Line: 62](src/TSwapPool.sol#L62)
-
-	```solidity
-	    event Swap(
-	```
-
-
-### [I-5] Constants should be defined and used instead of literals
-
-
-
-- Found in src/TSwapPool.sol [Line: 274](src/TSwapPool.sol#L274)
-
-	```solidity
-	        uint256 inputAmountMinusFee = inputAmount * 997;
-	```
-
-- Found in src/TSwapPool.sol [Line: 276](src/TSwapPool.sol#L276)
-
-	```solidity
-	        uint256 denominator = (inputReserves * 1000) + inputAmountMinusFee;
-	```
-
-- Found in src/TSwapPool.sol [Line: 292](src/TSwapPool.sol#L292)
-
-	```solidity
-	            ((inputReserves * outputAmount) * 10000) /
-	```
-
-- Found in src/TSwapPool.sol [Line: 293](src/TSwapPool.sol#L293)
-
-	```solidity
-	            ((outputReserves - outputAmount) * 997);
-	```
-
-- Found in src/TSwapPool.sol [Line: 400](src/TSwapPool.sol#L400)
-
-	```solidity
-	            outputToken.safeTransfer(msg.sender, 1_000_000_000_000_000_000);
-	```
-
-- Found in src/TSwapPool.sol [Line: 452](src/TSwapPool.sol#L452)
-
-	```solidity
-	                1e18,
-	```
-
-- Found in src/TSwapPool.sol [Line: 461](src/TSwapPool.sol#L461)
-
-	```solidity
-	                1e18,
-	```
-
-
-# Medium
-
-
-### [M-1] At `TSwapPool::deposit()` has missing deadline parameter is never used casuing transaction can complete even after deadline .
-
-**Description:** `TSwapPool::deposit()` fucntion accepts an deadline paraameter, according to the documentation.
-"The deadline is a parameter which determine when the transaction to cempleted." but is was never used in the function.
-And this might result adding liquidity to the market when the conditon for deposit rate is not faavourable.
-
-**Impact:** Transaction can be executed at unfavourable deposit rate , even when the deadline is passed to the parameter.
-
-**Proof of Concept:** The `deadline` parameters is unused.
-
-**Recommended Mitigation:** Try change change the `TSwapPool::deposit()` function to use the parameter.
-
-```diff
-   function deposit(
-        uint256 wethToDeposit,
-        uint256 minimumLiquidityTokensToMint,
-        uint256 maximumPoolTokensToDeposit,
- 
-        uint64 deadline
-    )
-        external
-+        revertIfDeadlinePassed(deadline)
-        revertIfZero(wethToDeposit)
-        returns (uint256 liquidityTokensToMint)
-    {
-
-    }
-```
-
-
-# Low
-### [L-1] At `TSwapPoll::LiquidityAdded()` is wrong ordered which lead provide worng informations.
-
-**Description:** When the `LiquidityAdded` event emitted at the `TSwapPool::_addLiquidityMintAndTransfer()` function
-event log will provide wrong information as the parameters are in wrong order .
-
-**Impact:** User Will get Wrong Information.
-
-
-
-**Recommended Mitigation:** try To Change The Order.
-
-```diff
-+ emit LiquidityAdded (msg.sender, wethToDeposit,poolTokensToDeposit);
-- emit LiquidityAdded (msg.sender, poolTokensToDeposit, wethToDeposit);
-```
-
-
-
-### [L-2] Default value returned by `TSwapPool::swapExactInput` results in incorrect return value given
-
-**Description:** The `swapExactInput` function is expected to return the actual amount of tokens bought by the caller. However, while it declares the named return value `ouput` it is never assigned a value, nor uses an explict return statement. 
-
-**Impact:** The return value will always be 0, giving incorrect information to the caller. 
-
-**Recommended Mitigation:** 
-
-```diff
-    {
-        uint256 inputReserves = inputToken.balanceOf(address(this));
-        uint256 outputReserves = outputToken.balanceOf(address(this));
-
--        uint256 outputAmount = getOutputAmountBasedOnInput(inputAmount, inputReserves, outputReserves);
-+        output = getOutputAmountBasedOnInput(inputAmount, inputReserves, outputReserves);
-
--        if (output < minOutputAmount) {
--            revert TSwapPool__OutputTooLow(outputAmount, minOutputAmount);
-+        if (output < minOutputAmount) {
-+            revert TSwapPool__OutputTooLow(outputAmount, minOutputAmount);
-        }
-
--        _swap(inputToken, inputAmount, outputToken, outputAmount);
-+        _swap(inputToken, inputAmount, outputToken, output);
-    }
-```
-
+| Severity          | Number of issues found |
+| ----------------- | ---------------------- |
+| High              | 5                      |
+| Medium            | 1                      |
+| Low               | 2                      |
+| Info              | 5                      |
+| Gas Optimizations | 0                      |
+| Total             | 13                     |
+# Findings
 # High
-
-
 ### [H-1] Incorrect fee calculation in `TSwapPool::getInputAmountBasedOnOutput` causes protocll to take too many tokens from users, resulting in lost fees
 
 **Description:** The `getInputAmountBasedOnOutput` function is intended to calculate the amount of tokens a user should deposit given an amount of tokens of output tokens. However, the function currently miscalculates the resulting amount. When calculating the fee, it scales the amount by 10_000 instead of 1_000. 
@@ -349,3 +268,197 @@ Place the following into `TSwapPool.t.sol`.
 </details>
 
 
+# Medium
+
+
+### [M-1] At `TSwapPool::deposit()` has missing deadline parameter is never used casuing transaction can complete even after deadline .
+
+**Description:** `TSwapPool::deposit()` fucntion accepts an deadline paraameter, according to the documentation.
+"The deadline is a parameter which determine when the transaction to cempleted." but is was never used in the function.
+And this might result adding liquidity to the market when the conditon for deposit rate is not faavourable.
+
+**Impact:** Transaction can be executed at unfavourable deposit rate , even when the deadline is passed to the parameter.
+
+**Proof of Concept:** The `deadline` parameters is unused.
+
+**Recommended Mitigation:** Try change change the `TSwapPool::deposit()` function to use the parameter.
+
+```diff
+   function deposit(
+        uint256 wethToDeposit,
+        uint256 minimumLiquidityTokensToMint,
+        uint256 maximumPoolTokensToDeposit,
+ 
+        uint64 deadline
+    )
+        external
++        revertIfDeadlinePassed(deadline)
+        revertIfZero(wethToDeposit)
+        returns (uint256 liquidityTokensToMint)
+    {
+
+    }
+```
+# Low 
+
+### [L-1] At `TSwapPoll::LiquidityAdded()` is wrong ordered which lead provide worng informations.
+
+**Description:** When the `LiquidityAdded` event emitted at the `TSwapPool::_addLiquidityMintAndTransfer()` function
+event log will provide wrong information as the parameters are in wrong order .
+
+**Impact:** User Will get Wrong Information.
+
+
+
+**Recommended Mitigation:** try To Change The Order.
+
+```diff
++ emit LiquidityAdded (msg.sender, wethToDeposit,poolTokensToDeposit);
+- emit LiquidityAdded (msg.sender, poolTokensToDeposit, wethToDeposit);
+```
+
+
+
+### [L-2] Default value returned by `TSwapPool::swapExactInput` results in incorrect return value given
+
+**Description:** The `swapExactInput` function is expected to return the actual amount of tokens bought by the caller. However, while it declares the named return value `ouput` it is never assigned a value, nor uses an explict return statement. 
+
+**Impact:** The return value will always be 0, giving incorrect information to the caller. 
+
+**Recommended Mitigation:** 
+
+```diff
+    {
+        uint256 inputReserves = inputToken.balanceOf(address(this));
+        uint256 outputReserves = outputToken.balanceOf(address(this));
+
+-        uint256 outputAmount = getOutputAmountBasedOnInput(inputAmount, inputReserves, outputReserves);
++        output = getOutputAmountBasedOnInput(inputAmount, inputReserves, outputReserves);
+
+-        if (output < minOutputAmount) {
+-            revert TSwapPool__OutputTooLow(outputAmount, minOutputAmount);
++        if (output < minOutputAmount) {
++            revert TSwapPool__OutputTooLow(outputAmount, minOutputAmount);
+        }
+
+-        _swap(inputToken, inputAmount, outputToken, outputAmount);
++        _swap(inputToken, inputAmount, outputToken, output);
+    }
+```
+
+
+# Informational
+
+### [I-1] `PoolFactory::PoolFactory__PoolDoesNotExist()` is not used sholud be removed.
+
+**Description:** An Custom called `PoolFactory__PoolDoesNotExist()` is in the `PoolFactory` contract but never usedit should be removed.
+
+```diff
+-     error PoolFactory__PoolDoesNotExist(address tokenAddress);
+```
+
+
+### [I-2] At `PoolFactory::constaructor()` lacks zero address check, without cheking by mistake zero address can be passed.
+
+**Description:** Add Zero Address Checks At The  `PoolFactory::constaructor()` For Validation.
+
+```diff
+        constructor(address wethToken) {
++            if(wethToken == address(0)){
++                revert();
++            }
+        i_wethToken = wethToken;
+    }
+```
+
+### [I-3] TITLE `PoolFactory::creatPool()` instead using `name()` for concating symbolpair it should use `symbol()`.
+
+**Description:** Using name with the symbol it makes confusing symbol sholud be used with othe other token symbol con pair concating at `PoolFactory::createPool()`.
+
+```diff
+- string memory liquidityTokenSymbol = string.concat("ts", IERC20(tokenAddress).name());
+
++ string memory liquidityTokenSymbol = string.concat("ts", IERC20(tokenAddress).symbol());
+```
+
+
+
+
+### [I-4] Events in `PoolFactory` lacks `indexeded` one of the evenets in `PoolFactory::Swap()`.
+
+**Description:** At `PoolFactory::Swap()` has more than 3 parameter it should have parameter indexed.
+Index event fields make the field more quickly accessible to off-chain tools that parse events. However, note that each index field costs extra gas during emission, so it's not necessarily best to index the maximum allowed per event (three fields). Each event should use three indexed fields if there are three or more fields, and gas usage is not particularly of concern for the events in question. If there are fewer than three fields, all of the fields should be indexed.
+
+- Found in src/PoolFactory.sol [Line: 35](src/PoolFactory.sol#L35)
+
+	```solidity
+	    event PoolCreated(address tokenAddress, address poolAddress);
+	```
+
+- Found in src/TSwapPool.sol [Line: 52](src/TSwapPool.sol#L52)
+
+	```solidity
+	    event LiquidityAdded(
+	```
+
+- Found in src/TSwapPool.sol [Line: 57](src/TSwapPool.sol#L57)
+
+	```solidity
+	    event LiquidityRemoved(
+	```
+
+- Found in src/TSwapPool.sol [Line: 62](src/TSwapPool.sol#L62)
+
+	```solidity
+	    event Swap(
+	```
+
+
+### [I-5] Constants should be defined and used instead of literals
+
+
+
+- Found in src/TSwapPool.sol [Line: 274](src/TSwapPool.sol#L274)
+
+	```solidity
+	        uint256 inputAmountMinusFee = inputAmount * 997;
+	```
+
+- Found in src/TSwapPool.sol [Line: 276](src/TSwapPool.sol#L276)
+
+	```solidity
+	        uint256 denominator = (inputReserves * 1000) + inputAmountMinusFee;
+	```
+
+- Found in src/TSwapPool.sol [Line: 292](src/TSwapPool.sol#L292)
+
+	```solidity
+	            ((inputReserves * outputAmount) * 10000) /
+	```
+
+- Found in src/TSwapPool.sol [Line: 293](src/TSwapPool.sol#L293)
+
+	```solidity
+	            ((outputReserves - outputAmount) * 997);
+	```
+
+- Found in src/TSwapPool.sol [Line: 400](src/TSwapPool.sol#L400)
+
+	```solidity
+	            outputToken.safeTransfer(msg.sender, 1_000_000_000_000_000_000);
+	```
+
+- Found in src/TSwapPool.sol [Line: 452](src/TSwapPool.sol#L452)
+
+	```solidity
+	                1e18,
+	```
+
+- Found in src/TSwapPool.sol [Line: 461](src/TSwapPool.sol#L461)
+
+	```solidity
+	                1e18,
+	```
+
+
+# Gas 
